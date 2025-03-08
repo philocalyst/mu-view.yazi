@@ -4,6 +4,8 @@
 
 This plugin provides email previewing capabilities within the [yazi](https://yazi-rs.github.io/) file manager. It leverages the power of [mu](https://www.djcbsoftware.nl/code/mu/) (a mail user agent) and [lynx](https://lynx.invisible-island.net/) (a text-based web browser) to render email content in a readable format directly in your terminal.
 
+![An example output](example.png)
+
 **NOTE**
 Pagiation is still a work-in-progress (for some reason)
 So no scrolling, yet.
