@@ -99,10 +99,10 @@ This plugin requires the following command-line tools to be installed and availa
     cd ~/.config/yazi/plugins
     ```
 
-2.  **Download the `mu-viewer.lua` plugin file.** You can either download it directly or create a file named `mu-viewer.lua` and copy the Lua code from this repository into it.
+2.  **Download the `main.lua` plugin file.** You can either download it directly or create a file named `main.lua` and copy the Lua code from this repository into it.
 
     ```bash
-    vim mu-viewer.lua
+    vim main.lua
     ```
 
 3.  **Restart yazi.**  The plugin should now be automatically loaded when you preview an email file.
