@@ -41,10 +41,10 @@ prepend_previewers = [
     cd ~/.config/yazi/plugins
     ```
 
-2.  **Download the `main.lua` plugin file.** You can either download it directly or create a file named `main.lua` and copy the Lua code from this repository into it.
+2.  **Download the plugin files.** You can either download it directly or create a file named `main.lua` and copy the Lua code from this repository into it.
 
     ```bash
-    vim main.lua
+    gh repo clone philocalyst/mu-view.yazi
     ```
 
 3.  **Restart yazi.**  The plugin should now be automatically loaded when you preview an email file.
