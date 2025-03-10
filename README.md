@@ -8,7 +8,7 @@ This plugin provides email previewing capabilities within the [yazi](https://yaz
 
 **NOTE**
 Pagiation is still a work-in-progress (for some reason)
-So no scrolling, yet.
+So no scrolling, yet. Feel free to submit a PR!
 
 ## Features
 
@@ -16,6 +16,29 @@ So no scrolling, yet.
   - **Plain Text and HTML Support:** Renders both plain text and HTML emails. For HTML emails, [lynx](https://lynx.invisible-island.net/) is used to convert HTML to plain text for terminal readability.
   - **Dependency Checks:** Automatically checks if `mu` and `lynx` are installed and notifies you if any dependencies are missing.
   - **Formatted Output:**  Uses `mu view` to extract and format email content, and `lynx` to process HTML for clean terminal rendering.
+
+## Installation
+*Please ensure all required dependencies are on your path before using this plugin*
+
+### Recommended:
+`ya pack -a philocalyst/mu-view`
+
+### General:
+
+1.  **Navigate to your yazi plugin directory.**  This is typically located at `~/.config/yazi/plugins/`
+
+    ```bash
+    mkdir -p ~/.config/yazi/plugins
+    cd ~/.config/yazi/plugins
+    ```
+
+2.  **Download the `main.lua` plugin file.** You can either download it directly or create a file named `main.lua` and copy the Lua code from this repository into it.
+
+    ```bash
+    vim main.lua
+    ```
+
+3.  **Restart yazi.**  The plugin should now be automatically loaded when you preview an email file.
 
 ## Dependencies
 
@@ -90,22 +113,6 @@ This plugin requires the following command-line tools to be installed and availa
         brew install lynx
         ```
 
-## Installation
-
-1.  **Navigate to your yazi plugin directory.**  This is typically located at `~/.config/yazi/plugins/`
-
-    ```bash
-    mkdir -p ~/.config/yazi/plugins
-    cd ~/.config/yazi/plugins
-    ```
-
-2.  **Download the `main.lua` plugin file.** You can either download it directly or create a file named `main.lua` and copy the Lua code from this repository into it.
-
-    ```bash
-    vim main.lua
-    ```
-
-3.  **Restart yazi.**  The plugin should now be automatically loaded when you preview an email file.
 
 ## Usage
 
