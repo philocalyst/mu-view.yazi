@@ -17,6 +17,15 @@ So no scrolling, yet. Feel free to submit a PR!
   - **Dependency Checks:** Automatically checks if `mu` and `lynx` are installed and notifies you if any dependencies are missing.
   - **Formatted Output:**  Uses `mu view` to extract and format email content, and `lynx` to process HTML for clean terminal rendering.
 
+## Usage
+**Add these lines to your yazi.toml:**
+```lua
+prepend_previewers = [
+	{ mime = "application/mail", run = "mu-view" },
+	{ mime = "message/rfc822", run = "mu-view" },
+]
+```
+
 ## Installation
 *Please ensure all required dependencies are on your path before using this plugin*
 
