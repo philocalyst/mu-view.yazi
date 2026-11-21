@@ -8,7 +8,7 @@ local PREVIEW = {
 -- Check if mu is installed
 local function is_mu_installed()
 	local status, err = Command("which")
-			:args({ "mu" })
+			:arg({ "mu" })
 			:stdin(Command.NULL)
 			:stdout(Command.PIPED)
 			:stderr(Command.PIPED)
@@ -22,13 +22,13 @@ end
 -- Check if lynx is installed
 local function is_lynx_installed()
 	local status, err = Command("which")
-			:args({ "lynx" })
+			:arg({ "lynx" })
 			:stdin(Command.NULL)
 			:stdout(Command.PIPED)
 			:stderr(Command.PIPED)
 			:spawn()
 			:wait()
-			:status()
+		:status()
 
 	return status.success
 end
@@ -54,7 +54,7 @@ end
 local function parse_mail_content(file_url, format)
 	log_debug("Parsing mail with format: " .. format)
 	return Command("mu")
-			:args({
+			:arg({
 				"view",
 				"--format",
 				format,
@@ -71,11 +71,12 @@ end
 local function process_html_with_lynx(html_content, width)
 	log_debug("Processing HTML content with lynx, width: " .. width)
 	local lynx = Command("lynx")
-			:args({
+			:arg({
 				"-dump",
 				"-stdin",
 				"-nomargins",
 				"-width=" .. width,
+				"-assume_charset=utf-8", -- Input from mu view is UTF-8
 				"-display_charset=utf-8", -- Force UTF-8 output
 				"-force_html",        -- Force HTML interpretation
 				"-nobrowse"           -- Don't start interactive browser
@@ -164,6 +165,45 @@ function isolate_headers(input)
 	return headers, table.concat(html, "\n")
 end
 
+-- Preview-only soft wrap (the EML file itself is never modified)
+local function char_width(c)
+	if c >= 0x1100 and c <= 0x115f then return 2 end
+	if c >= 0x2e80 and c <= 0xa4cf then return 2 end
+	if c >= 0xac00 and c <= 0xd7a3 then return 2 end
+	if c >= 0xf900 and c <= 0xfaff then return 2 end
+	if c >= 0xfe10 and c <= 0xfe6f then return 2 end
+	if c >= 0xff00 and c <= 0xff60 then return 2 end
+	if c >= 0xffe0 and c <= 0xffe6 then return 2 end
+	if c >= 0x1f300 then return 2 end
+	return 1
+end
+
+local function wrap_lines(text, width)
+	local out = {}
+	if width <= 0 then
+		for line in text:gmatch("([^\n]*)\n?") do out[#out + 1] = line end
+		return out
+	end
+	for line in text:gmatch("([^\n]*)\n?") do
+		if line == "" then
+			out[#out + 1] = ""
+		else
+			local cur, w = "", 0
+			for _, c in utf8.codes(line) do
+				local cw = char_width(c)
+				if w + cw > width and cur ~= "" then
+					out[#out + 1] = cur
+					cur, w = "", 0
+				end
+				cur = cur .. utf8.char(c)
+				w = w + cw
+			end
+			if cur ~= "" then out[#out + 1] = cur end
+		end
+	end
+	return out
+end
+
 function M:peek(job)
 	if not dependencies_installed() then
 		ya.notify {
@@ -180,7 +220,7 @@ function M:peek(job)
 	local success = false
 
 	-- Try with plain format first, then fallback to HTML as last resort
-	for _, current_format in ipairs({ "0", "2" }) do
+	for _, current_format in ipairs({ "plain", "html" }) do
 		if success then break end
 
 		log_debug("Trying format: " .. current_format)
@@ -201,11 +241,11 @@ function M:peek(job)
 		child:start_kill()
 
 		-- Check if we got "[No plain text body found]" message
-		if full_output:find("%[No plain text body found%]") and current_format == "0" then
+		if full_output:find("%[No plain text body found%]") and current_format == "plain" then
 			log_debug("No plain text body found, will try HTML format")
 		else
 			-- Process HTML if needed
-			if current_format == "2" then
+			if current_format == "html" then
 				log_debug("Processing HTML content (length: " .. #full_output .. " bytes)")
 				local headers, html_content = isolate_headers(full_output)
 				local html_output, html_err = process_html_with_lynx(html_content, job.area.w)
@@ -228,7 +268,7 @@ function M:peek(job)
 
 	if not success or not content then
 		log_error("Failed to render email content")
-		ya.preview_widgets(job, {
+		ya.preview_widget(job, {
 			ui.Text.parse("ERROR: Failed to render email content"):area(job.area)
 		})
 		return
@@ -238,18 +278,15 @@ function M:peek(job)
 	content = content:gsub("\t", string.rep(" ", PREVIEW.tab_size))
 	log_debug("Rendering " .. #content .. " bytes of content")
 
-	-- Handle pagination
-	local lines = {}
-	for line in content:gmatch("([^\n]*)\n?") do
-		table.insert(lines, line)
-	end
+	-- Handle pagination (wrap to preview width; display only)
+	local lines = wrap_lines(content, math.max(10, job.area.w - 1))
 
 	local start_line = job.skip + 1
 	local end_line = math.min(start_line + job.area.h - 1, #lines)
 	local displayed_content = table.concat(lines, "\n", start_line, end_line)
 
 	-- Display output
-	ya.preview_widgets(job, { ui.Text.parse(displayed_content):area(job.area) })
+	ya.preview_widget(job, { ui.Text.parse(displayed_content):area(job.area) })
 
 	-- Handle scroll boundary conditions
 	if job.skip > 0 and end_line < #lines and end_line - start_line + 1 < job.area.h then
